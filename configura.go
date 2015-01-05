@@ -41,7 +41,9 @@ func getStructInfo(v reflect.StructField) (fieldName, envVar, defVal string) {
 // environment variables.
 //
 // The variable name can set using struct tags.
-// A default value can also be set. For example:
+// A default value can also be optionally set.
+//
+// For example:
 //
 // var config = struct {
 // 	LogPrefix   string `env:"LOG_PREFIX"`

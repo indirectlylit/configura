@@ -1,10 +1,17 @@
-// Configura will allow you to store all your configuration in environment
-// variables, but it will also let you set some defaults.
-
-// If you already know "The twelve-factor methodology" (see: http://12factor.net/)
-// you will be aware of their third point: http://12factor.net/config were they
-// highly recommend to use environment variables to all the configs in your app. I
-// will also add that using docker this way of storing the configuration is quite
-// handy and some times allows you to avoid other techniques like: ansible,
-// puppet, chef...
+// configura.LoadEnv will go through all the fields
+// defined in the struct and load their values from
+// system environment variables.
+//
+// The variable name can set using struct tags.
+// A default value can also be optionally set.
+//
+// For example:
+//
+// var config = struct {
+// 	LogPrefix   string `env:"LOG_PREFIX"`
+// 	Port        int    `env:"PORT,8888"`
+// 	Development bool   `env:"DEVELOPMENT"`
+// }{}
+//
+// err = LoadEnv(&config)
 package configura
