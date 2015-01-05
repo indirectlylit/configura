@@ -19,6 +19,6 @@ err = configura.LoadEnv(&config)
 Background
 ----------
 
-The Twelve-Factor methodology [recommends](http://12factor.net/config) recommends storing application configuration in system environment variables. On the other hand, environment variables don't provide an [explicit and fully-documented surface area] for an application, like command-line flags do.
+The Twelve-Factor methodology [recommends](http://12factor.net/config) recommends storing application configuration in system environment variables. On the other hand, environment variables don't provide an [explicit and fully-documented surface area](http://peter.bourgon.org/go-in-production/#configuration) for an application, like command-line flags do.
 
 Configura achieves both these goals by documenting the environment variables used by an application, allowing default values to be specified, and – in the words of the [original author](https://github.com/agonzalezro/configura) – keeping all this configuration-loading easy-peasy.
