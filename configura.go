@@ -1,5 +1,17 @@
 package configura
 
+/*
+Original from
+ https://github.com/agonzalezro/configura/blob/master/configura.go
+under the Apache 2.0 license.
+
+Modifications from original:
+ - removed prefix
+ - renamed flag from `configura` to `env`
+ - cleaned up documentation
+ - changed empty default behavior for numbers & bools: interpreted as 0 or false
+*/
+
 import (
 	"errors"
 	"fmt"
@@ -10,17 +22,13 @@ import (
 	"time"
 )
 
-func noDefaultsError(n, v string) error {
-	return fmt.Errorf("%s doesn't have defaults and %s is not set", n, v)
-}
-
 func mismatchError(n string, i interface{}, t reflect.Kind) error {
 	return fmt.Errorf("%s=%v must be %s", n, i, t)
 }
 
 func getStructInfo(v reflect.StructField) (fieldName, envVar, defVal string) {
 	fieldName = v.Name
-	tags := strings.Split(v.Tag.Get("configura"), ",")
+	tags := strings.Split(v.Tag.Get("env"), ",")
 	envVar = tags[0]
 	if len(tags) > 1 {
 		defVal = tags[1]
@@ -28,17 +36,21 @@ func getStructInfo(v reflect.StructField) (fieldName, envVar, defVal string) {
 	return
 }
 
-// Load will go through all the fields defined in your struct and trying to
-// load their config values from environemnt variables.
+// LoadEnv will go through all the fields defined
+// in the struct and load their values from system
+// environment variables.
 //
-// - The var name to be looked up on the system can be override using struct
-// tags: `configura:"OVERRIDE"`
+// The variable name can set using struct tags.
+// A default value can also be set. For example:
 //
-// - The user will also be able to set some defaults int case that the variable
-// was not found on the system: `configura:",defaultvalue"`
+// var config = struct {
+// 	LogPrefix   string `env:"LOG_PREFIX"`
+// 	Port        int    `env:"PORT,8888"`
+// 	Development bool   `env:"DEVELOPMENT"`
+// }{}
 //
-// - Or both: `configura:"OVERRIDE,defaultvalue"`
-func Load(prefix string, c interface{}) error {
+// err = LoadEnv(&config)
+func LoadEnv(c interface{}) error {
 	t := reflect.TypeOf(c)
 	te := t.Elem()
 	v := reflect.ValueOf(c)
@@ -51,21 +63,29 @@ func Load(prefix string, c interface{}) error {
 	for i := 0; i < te.NumField(); i++ {
 		sf := te.Field(i)
 		fieldName, envVar, defVal := getStructInfo(sf)
-
 		field := ve.FieldByName(fieldName)
 
 		if envVar == "" {
-			envVar = prefix + strings.ToUpper(fieldName)
+			envVar = strings.ToUpper(fieldName)
 		}
 		env := os.Getenv(envVar)
 
-		if env == "" && defVal != "" {
+		if env == "" {
 			env = defVal
-		} else if env == "" {
-			return noDefaultsError(fieldName, envVar)
 		}
 
 		kind := field.Kind()
+
+		switch kind {
+		case reflect.Int, reflect.Int64, reflect.Float32, reflect.Float64:
+			if env == "" {
+				env = "0"
+			}
+		case reflect.Bool:
+			if env == "" {
+				env = "false"
+			}
+		}
 
 		switch kind {
 		case reflect.String:
